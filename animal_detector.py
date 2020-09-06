@@ -4,6 +4,7 @@ import streamlit as st
 from animal_detector.detection.run_tf_detector import ImagePathUtils
 from animal_detector.detection.run_tf_detector_batch import *
 from animal_detector.detection.run_tf_detector import load_and_run_detector
+import os
 
 st.title("Animal Detection App")
 
@@ -23,16 +24,26 @@ st.title("Animal Detection App")
 #     st.stop()
 
 # Get folder name from User
-station_folder_name = st.text_input("Enter a path to a station folder with only jpeg images in it (or a .json file referencing these jpegs) : ")
-station_folder_name = os.path.join("/home/rave/animal_detector/tests/data/", station_folder_name)
-if os.path.exists(station_folder_name) is False or "Station" not in station_folder_name:
-    st.warning('Warning: The input folder {} does not exist. Please choose a different name.'.format(station_folder_name))
-    st.stop()
-st.success("Great! The input folder name is valid.")
+
+def file_selector(folder_path='.'):
+    filenames = os.listdir(folder_path)
+    selected_filename = st.selectbox('Select a folder or file', filenames)
+    return os.path.join(folder_path, selected_filename)
+
+filename = file_selector()
+if os.path.isdir(filename):
+    st.write('You selected the folder `%s`' % filename)
+
+# filename = st.text_input("Enter a path to a station folder with only jpeg images in it (or a .json file referencing these jpegs) : ")
+# filename = os.path.join("/home/rave/animal_detector/tests/data/", filename)
+# if os.path.exists(filename) is False or "Station" not in filename:
+#     st.warning('Warning: The input folder {} does not exist. Please choose a different name.'.format(filename))
+#     st.stop()
+# st.success("Great! The input folder name is valid.")
 
 station_results_folder_name = st.text_input("Enter a name for the results folder where output detection images and statistics will be stored: ")
-station_results_folder_name = os.path.join("/home/rave/animal_detector/tests/output_imgs/", station_results_folder_name)
-if len(station_results_folder_name) < 46:
+station_results_folder_name = os.path.join(station_results_folder_name)
+if len(station_results_folder_name) < 2:
     st.warning('Select an output folder path.'.format(station_results_folder_name))
     st.stop()
 
@@ -46,28 +57,24 @@ os.mkdir(station_results_folder_name)
 # Run batch detection
 
 # Find the images to score; images can be a directory, may need to recurse
-if os.path.isdir(station_folder_name ):
-    image_file_names = ImagePathUtils.find_images(station_folder_name, False)
+if os.path.isdir(filename ):
+    image_file_names = ImagePathUtils.find_images(filename, False)
     st.text('{} image files found in the input directory'.format(len(image_file_names)))
 # A json list of image paths
-elif os.path.isfile(station_folder_name) and station_folder_name.endswith('.json'):
-    with open(station_folder_name) as f:
+elif os.path.isfile(filename) and filename.endswith('.json'):
+    with open(filename) as f:
         image_file_names = json.load(f)
     st.text('{} image files found in the json list'.format(len(image_file_names)))
 # A single image file
-elif os.path.isfile(station_folder_name) and ImagePathUtils.is_image_file(station_folder_name):
-    image_file_names = [station_folder_name]
-    print('A single image at {} is the input file'.format(station_folder_name))
+elif os.path.isfile(filename) and ImagePathUtils.is_image_file(filename):
+    image_file_names = [filename]
+    print('A single image at {} is the input file'.format(filename))
 else:
     raise ValueError('image_file specified is not a directory, a json list, or an image file, '
                         '(or does not have recognizable extensions).')
 
 assert len(image_file_names) > 0, 'Specified image_file does not point to valid image files'
 assert os.path.exists(image_file_names[0]), 'The first image to be scored does not exist at {}'.format(image_file_names[0])
-
-output_dir = os.path.dirname(station_results_folder_name)
-
-assert os.path.exists(output_dir), 'Invalid path, folder to contain results folder does not exist.'
 
 st.text('Starting detection. One image requires a bit less than one second When using a GPU...')
 start_time = time.time()
@@ -78,7 +85,7 @@ results = load_and_run_detector_batch(model_file="./md_v4.1.0.pb",
                                         confidence_threshold=.65,
                                         checkpoint_frequency=-1,
                                         results=[],
-                                        n_cores=4)
+                                        n_cores=1)
 
 elapsed = time.time() - start_time
 write_results_to_file(results, os.path.join(station_results_folder_name, "results.json"))
