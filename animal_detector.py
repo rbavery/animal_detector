@@ -33,6 +33,7 @@ def file_selector(folder_path='.'):
 filename = file_selector()
 if os.path.isdir(filename):
     st.write('You selected the folder `%s`' % filename)
+    st.write('This folder has `%s` files.' % len(os.listdir(filename)))
 
 # filename = st.text_input("Enter a path to a station folder with only jpeg images in it (or a .json file referencing these jpegs) : ")
 # filename = os.path.join("/home/rave/animal_detector/tests/data/", filename)
@@ -97,18 +98,20 @@ animal_images = []
 for i in results:
     if 'detections' in i:
         for j in i['detections']:
-            if j['category'] == '1' and j['conf'] > .90:
-                animal_images.append(i['file'])
+            # no conf and animal filter
+            animal_images.append(i['file'])
+            # if j['category'] == '1' and j['conf'] > .90:
+            #     animal_images.append(i['file'])
 import shutil         
 # no boxes around animal detections
-for i in animal_images:
-    fname = os.path.basename(i)
-    shutil.copyfile(i, os.path.join(station_results_folder_name, fname))
+# for i in animal_images:
+#     fname = os.path.basename(i)
+#     shutil.copyfile(i, os.path.join(station_results_folder_name, fname))
 
 # boxes around animal detections
-# load_and_run_detector(model_file="./md_v4.1.0.pb",
-#                          image_file_names=animal_images,
-#                          output_dir = station_results_folder_name)
+load_and_run_detector(model_file="./md_v4.1.0.pb",
+                         image_file_names=animal_images,
+                         output_dir = station_results_folder_name)
 
 # Notify the reader that the data was successfully loaded.
 st.text(f'Running detections is done! Results are saved at {station_results_folder_name}. Restart the app to run another station.')
