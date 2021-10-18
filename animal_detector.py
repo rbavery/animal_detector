@@ -5,7 +5,10 @@ from animal_detector.detection.run_tf_detector import ImagePathUtils
 from animal_detector.detection.run_tf_detector_batch import *
 from animal_detector.detection.run_tf_detector import load_and_run_detector
 import os
-
+import debugpy
+# if not debugpy.is_client_connected():
+#     debugpy.listen(5678)
+#     debugpy.wait_for_client()
 st.title("Animal Detection App")
 
 # import skimage.io as skio
@@ -86,7 +89,7 @@ results = load_and_run_detector_batch(model_file="./md_v4.1.0.pb",
                                         confidence_threshold=.65,
                                         checkpoint_frequency=-1,
                                         results=[],
-                                        n_cores=1)
+                                        n_cores=0)
 
 elapsed = time.time() - start_time
 write_results_to_file(results, os.path.join(station_results_folder_name, "results.json"))

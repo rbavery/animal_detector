@@ -1,4 +1,4 @@
-r"""
+"""
 Module to run a TensorFlow animal detection model on lots of images, writing the results
 to a file in the same format produced by our batch API:
 

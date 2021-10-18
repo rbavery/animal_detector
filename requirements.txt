@@ -1,3 +1,4 @@
+#conda or pip
 numpy==1.18.3
 pytest==6.1.0
 requests==2.24.0
@@ -5,9 +6,9 @@ tqdm==4.50.0
 Click==7.0
 matplotlib==3.2.1
 streamlit==0.64.0
-absl==0.0
-humanfriendly==8.2
 jsonpickle==1.4.1
-object_detection==0.0.3
 Pillow==7.2.0
 tensorflow==2.3.1
+#install from pip
+humanfriendly==8.2
+object_detection==0.0.3
