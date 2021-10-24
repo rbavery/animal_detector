@@ -103,3 +103,6 @@ ENV/
 
 # IDE settings
 .vscode/
+data/Station*
+app/md_v4.1.0.pb
+data/results/

@@ -1,0 +1,7 @@
+data/
+LICENSE
+*.ipynb
+*.md
+*.cfg
+*.py
+*.yaml

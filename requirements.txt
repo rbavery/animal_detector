@@ -5,7 +5,7 @@ requests==2.24.0
 tqdm==4.50.0
 Click==7.0
 matplotlib==3.2.1
-streamlit==0.64.0
+streamlit==1.1.0
 jsonpickle==1.4.1
 Pillow==7.2.0
 tensorflow==2.3.1
