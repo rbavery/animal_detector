@@ -1,0 +1,12 @@
+pretrainedmodels==0.7.4
+pillow==6.1.0
+progressbar2==3.51.0
+cupy-cuda100==7.3.0
+torchnet==0.0.4
+pandas==1.0
+matplotlib
+numpy
+scikit-image
+click
+Cython
+vaex

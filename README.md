@@ -10,8 +10,17 @@ This app was developed for a bit of consulting work for an environmental consult
 
 `docker run -it --gpus all --rm -v "$(pwd)"/data:/data -v "$(pwd)"/app:/app animal_detector_app bash`
 
- Make sure the model is downloaded from here https://lilablobssc.blob.core.windows.net/models/camera_traps/megadetector/md_v4.1.0/md_v4.1.0.pb and placed in the same directory from where you are running the script.
+Make sure the model is downloaded from here https://lilablobssc.blob.core.windows.net/models/camera_traps/megadetector/md_v4.1.0/md_v4.1.0.pb and placed in the same directory from where you are running the script.
 
- You can select a folder of images to run the model on and the name of an output folder that will be created where images will be saved. Inference will be run twice on all images, once to profile the time it takes and another to save out the visuals of boxes on images (see the code to comment out the extra step you don't want.)
+You can select a folder of images to run the model on and the name of an output folder that will be created where images will be saved. Inference will be run twice on all images, once to profile the time it takes and another to save out the visuals of boxes on images (see the code to comment out the extra step you don't want.)
 
- After dockerizing the app, I hit issues where the app would run on the first input folder in the selector as soon as it was opened, so the `animal_detector_process.py` cli is more ready to use.
+After dockerizing the app, I hit issues where the app would run on the first input folder in the selector as soon as it was opened, so the `animal_detector_process.py` cli is more ready to use.
+
+### Pipeline for filtering a directory of images by both animal presence and species
+
+```
+docker run -it --gpus all --rm -v "$(pwd)"/data:/data -v "$(pwd)"/app:/app animal_detector_app detect.sh SampleAnimalPics sampleresultstest
+docker run -it --gpus all --rm -v "$(pwd)"/data:/data -v "$(pwd)"/SpeciesClassification:/app species_detector sampleresultstest test.csv
+sudo chmod -R a+rwx data/results/sampleresultstest
+python filter_common_animals.py --csv_path data/results/test.csv --common_to_filter "sheep" --threshold .2
+```

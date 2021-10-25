@@ -1,0 +1,1 @@
+python classify_images.py --images_to_classify /data/results/$1 --classification_output_file /data/results/$2 --taxonomy_path species_classification.2019.12.00.taxa.csv --classification_model_path species_classification.2019.12.00.pytorch

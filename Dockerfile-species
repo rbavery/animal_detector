@@ -1,0 +1,11 @@
+FROM pytorch/pytorch:1.2-cuda10.0-cudnn7-runtime
+WORKDIR /app
+COPY requirements-species.txt ./requirements-species.txt
+RUN pip install -r requirements-species.txt
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+COPY SpeciesClassification/FasterRCNNDetection/model/utils/nms/ /app/FasterRCNNDetection/model/utils/nms/
+RUN cd /app/FasterRCNNDetection/model/utils/nms/ && python3 build.py build_ext --inplace
+COPY SpeciesClassification/inceptionv4-8e4777a0.pth /root/.cache/torch/checkpoints/inceptionv4-8e4777a0.pth
+COPY SpeciesClassification/se_resnext101_32x4d-3b2fe3d8.pth /root/.cache/torch/checkpoints/se_resnext101_32x4d-3b2fe3d8.pth
+ENTRYPOINT ["bash", "classify_images.sh"]
