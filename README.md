@@ -24,3 +24,13 @@ docker run -it --gpus all --rm -v "$(pwd)"/data:/data -v "$(pwd)"/SpeciesClassif
 sudo chmod -R a+rwx data/results/sampleresultstest
 python filter_common_animals.py --csv_path data/results/test.csv --common_to_filter "sheep" --threshold .2
 ```
+
+make sure to download the model files and other data for species classification referenced here and place them in the `SpeciesClassification` folder: https://github.com/microsoft/SpeciesClassification
+
+```
+se_resnext101_32x4d-3b2fe3d8.pth
+species_classification.2019.12.00.pytorch
+inceptionv4-8e4777a0.pth    
+species_classification.2019.12.00.taxa.csv
+```
+The .pth files are downloaded automatically during the `classify_images.py` script every time it is run if they are not copied during the docker build.
