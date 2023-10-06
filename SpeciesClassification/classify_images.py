@@ -97,7 +97,7 @@ def main(
 
     # This must be True if detection is enabled.  Classification can be run
     # on the CPU or GPU.
-    use_gpu = True
+    use_gpu = False
 
     subdirs_to_import = [
         "DetectionClassificationAPI",
@@ -149,34 +149,37 @@ def main(
 
     latin_to_common = {}
 
-    if taxonomy_path is not None:
+    def process_taxonomy(taxonomy_path):
+        """
+        Processes a taxonomy CSV file and returns a dictionary mapping from
+        Latin names to common names.
 
+        :param taxonomy_path: Path to the taxonomy CSV file
+        :return: Dictionary mapping from Latin names to common names
+        """
         print("Reading taxonomy file from {}".format(taxonomy_path))
 
-        # Read taxonomy file; takes ~1 minute
+        # Read taxonomy file
         df = pd.read_csv(taxonomy_path)
         df = df.fillna("")
 
-        # Columns are:
-        #
-        # taxonID,scientificName,parentNameUsageID,taxonRank,vernacularName,wikipedia_url
+        # Strip and lower the scientificName and vernacularName columns
+        df['scientificName'] = df['scientificName'].str.strip().str.lower()
+        df['vernacularName'] = df['vernacularName'].str.strip().str.lower()
 
-        nRows = df.shape[0]
+        # Handle empty scientific names
+        mask_invalid_names = df['scientificName'] == ""
+        df.loc[mask_invalid_names, 'scientificName'] = "unknown"
+        print(f"Warning: invalid scientific name at {df[mask_invalid_names].index.values}")
 
-        for index, row in df.iterrows():
+        # Create a dictionary from scientificName to vernacularName
+        latin_to_common = df.set_index('scientificName')['vernacularName'].to_dict()
 
-            latin_name = row["scientificName"]
-            latin_name = latin_name.strip()
-            if len(latin_name) == 0:
-                print("Warning: invalid scientific name at {}".format(index))
-                latin_name = "unknown"
-            common_name = row["vernacularName"]
-            common_name = common_name.strip()
-            latin_name = latin_name.lower()
-            common_name = common_name.lower()
-            latin_to_common[latin_name] = common_name
+        return latin_to_common
 
-        print("Finished reading taxonomy file")
+    if taxonomy_path is not None:
+
+        latin_to_common = process_taxonomy(taxonomy_path)
 
     # Create the model(s)
 
@@ -294,7 +297,7 @@ def main(
 class DownloadProgressBar:
     """
     Console progress indicator for downloads.
-    
+
     stackoverflow.com/questions/37748105/how-to-use-progressbar-module-with-urlretrieve
     """
 
