@@ -4,27 +4,38 @@
 
 https://github.com/microsoft/CameraTraps/releases/tag/v5.0
 
-## Export yolov5 weights as torchscript model
-Size needs to be same as in mdv5_handler.py for good performance 
+## Export yolov5 weights in compiled model formats
+Clone the [yolov5 repository](https://github.com/ultralytics/yolov5)
+
+then, export the model in multiple formats
 ```
-python yolov5/export.py --weights models/megadetectorv5/md_v5a.0.0.pt --img 640 640 --batch 1 
+ python yolov5_recent/export.py --imgsz 960 1280 --weights model-weights/md_v5a.0.0.pt --include onnx torchscript --device 0
 ```
-this will create models/megadetectorv5/md_v5a.0.0.torchscript 
+
+The torchscript file can be compiled to a TensorRT model file that works with the Dockerfile in this folder.
+
+Run `torchscript_to_tensorrt.py`, which will produce `./model-weights/trt_torchscript_module_960_1280.ts`
+
+We'll use that since it's fastest on a GPU. To run the model on a CPU, use the ONNX model file.
 
 ## Run model archiver
 
 ```
-torch-model-archiver --model-name mdv5 --version 1.0.0 --serialized-file models/megadetectorv5/md_v5a.0.0.torchscript --extra-files index_to_name.json --handler mdv5_handler.py
-mkdir -p model_store
-mv mdv5.mar model_store/megadetectorv5-yolov5-1-batch-640-640.mar
+torch-model-archiver -f --model-name mdv5a --version 1.0.0 --serialized-file model-weights/trt_torchscript_module_960_1280.ts --extra-files index_to_name.json --handler mdv5_handler_tensorrt.py
 ```
 
 The .mar file is what is served by torchserve.
 
+Make sure it is in the model store directory before starting the model server
+
+```
+mv mdv5a.mar model_store_trt/mdv5a.mar
+```
+
 ## Serve the torchscript model with torchserve
 
 ```
-bash docker_mdv5.sh
+bash docker_mdv5_trt.sh
 ```
 
 ## Return prediction in normalized coordinates with category integer and confidence score
