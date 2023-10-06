@@ -30,7 +30,7 @@ from torchvision import transforms
 class ModelType(Enum):
 
     resnet50 = 0
-    inceptionv4 = 1  
+    inceptionv4 = 1
     inceptionresnetv2 = 2
     inceptionv4_resnet50 = 3
     inceptionv4_inceptionresnetv2 = 4
@@ -62,8 +62,8 @@ class EnsembleAverage(nn.Module):
 
     def forward(self, x):
 
-        input_incept = F.interpolate(x, (self.input_sizes[0], self.input_sizes[0]), mode='bilinear') 
-        input_resnet = F.interpolate(x, (self.input_sizes[1], self.input_sizes[1]), mode='bilinear') 
+        input_incept = F.interpolate(x, (self.input_sizes[0], self.input_sizes[0]), mode='bilinear')
+        input_resnet = F.interpolate(x, (self.input_sizes[1], self.input_sizes[1]), mode='bilinear')
         return (self.modelIncept(input_incept) + self.modelResnet(input_resnet))/2
 
 
@@ -103,7 +103,7 @@ class EnsembleDoubleFC(nn.Module):
 
     def forward(self, x):
 
-        x0 = self.modelInceptFeats(x)    
+        x0 = self.modelInceptFeats(x)
         x1 = self.modelResnetFeats(x)
         x0x1 = torch.cat((x0, x1), 1).squeeze()
         return self.classifier(x0x1)
@@ -117,7 +117,7 @@ class ClassificationModel(nn.Module):
 
         if isinstance(model_file,str):
             model_file = [model_file]
-        
+
         if (isinstance(image_sizes,int)):
 
             # If the model we're loading is an ensemble, we need multiple image sizes
@@ -129,7 +129,7 @@ class ClassificationModel(nn.Module):
 
         if model_file and len(model_file) > 1 and model_type!=None and classes!=None:
             self.initSubModelsFromFile(model_file, model_type, classes)
-        elif model_file:            
+        elif model_file:
             self.initFromFile(model_file[0], model_type, classes)
         else:
             self.init(model_type, classes, self.image_sizes)
@@ -138,8 +138,8 @@ class ClassificationModel(nn.Module):
             self.model = self.model.cuda()
 
 
-    def loadOptimizer(self, optimizer): 
-        
+    def loadOptimizer(self, optimizer):
+
         #optimizer.load_state_dict(self.data.optimizer_dict)
         print("prec 1,3,5: %f %f %f" % (self.data.best_prec1, self.data.best_prec3, self.data.best_prec5))
 
@@ -157,7 +157,7 @@ class ClassificationModel(nn.Module):
         num_classes = len(self.classnames)
 
         self.init(self.model_type, self.classnames, self.image_sizes, loadImagenetWeights=False)
-        
+
         try:
             self.model.load_state_dict(self.data.model_dict)
         except Exception as e:
@@ -170,21 +170,21 @@ class ClassificationModel(nn.Module):
         num_classes = len(classnames)
 
         self.init(self.model_type, classnames, self.image_sizes, loadImagenetWeights=False)
-       
+
         print("Loading inception")
         dataIncept = load_model(model_file[0])
         try:
             self.model.modelIncept.load_state_dict(dataIncept.model_dict)
         except Exception as e:
             print(str(e))
-           
+
         print("Loading resnet")
         dataResnet = load_model(model_file[1])
         try:
             self.model.modelResnet.load_state_dict(dataResnet.model_dict)
         except Exception as e:
             print(str(e))
-        
+
         self.classnames = classnames
 
 
@@ -196,7 +196,7 @@ class ClassificationModel(nn.Module):
         pretrained = loadPretrained = "imagenet" if loadImagenetWeights else None
 
         if self.model_type == ModelType.inceptionv3:
-            model = pretrained.inceptionv3.inception_v3(num_classes=num_classes, 
+            model = pretrained.inceptionv3.inception_v3(num_classes=num_classes,
                                pretrained=loadPretrained, aux_logits=False)
             model.last_linear = model.fc
 
@@ -208,28 +208,28 @@ class ClassificationModel(nn.Module):
                     param.requires_grad = True
                 ct += 1
             model.avg_pool = nn.AdaptiveAvgPool2d((1,1))
-            model.last_linear = nn.Linear(model.last_linear.in_features, num_classes)    
+            model.last_linear = nn.Linear(model.last_linear.in_features, num_classes)
 
         elif (self.model_type == ModelType.inceptionresnetv2):
 
             model = pretrainedmodels.__dict__["inceptionresnetv2"](num_classes=1000, pretrained=loadPretrained)
-        
+
             ct = 0
             for child in model.children():
                 for param in child.parameters():
                     param.requires_grad = True
                 ct += 1
             model.avgpool_1a = nn.AdaptiveAvgPool2d((1,1))
-            model.last_linear = nn.Linear(model.last_linear.in_features, num_classes)    
+            model.last_linear = nn.Linear(model.last_linear.in_features, num_classes)
 
         elif (self.model_type == ModelType.resnext101):
             model = pretrainedmodels.__dict__["se_resnext101_32x4d"](num_classes=1000, pretrained=loadPretrained)
             model.avg_pool = nn.AdaptiveAvgPool2d((1,1))
-            model.last_linear = nn.Linear(model.last_linear.in_features, num_classes)    
+            model.last_linear = nn.Linear(model.last_linear.in_features, num_classes)
 
         elif (self.model_type == ModelType.resnet50):
             model = models.resnet50(pretrained=True)
-        
+
             ct = 0
             for child in model.children():
                 for param in child.parameters():
@@ -267,24 +267,25 @@ class ClassificationModel(nn.Module):
             '''
             modelIncept.avg_pool = nn.AdaptiveAvgPool2d((1,1))
             modelResnet.avgpool_1a = nn.AdaptiveAvgPool2d((1,1))
-            modelIncept.last_linear = nn.Linear(modelIncept.last_linear.in_features, num_classes)    
-            modelResnet.last_linear = nn.Linear(modelResnet.last_linear.in_features, num_classes)   
-            
-            model = EnsembleAverage(modelIncept, modelResnet, num_classes, self.image_sizes)
+            modelIncept.last_linear = nn.Linear(modelIncept.last_linear.in_features, num_classes)
+            modelResnet.last_linear = nn.Linear(modelResnet.last_linear.in_features, num_classes)
 
+            model = EnsembleAverage(modelIncept, modelResnet, num_classes, self.image_sizes)
+        # import ssl
+        # ssl._create_default_https_context = ssl._create_unverified_context
         elif (self.model_type == ModelType.inceptionv4_resnext101):
             modelIncept = pretrainedmodels.__dict__["inceptionv4"](num_classes=1000, pretrained="imagenet")
             modelIncept.avg_pool = nn.AdaptiveAvgPool2d((1,1))
             modelIncept.last_linear = nn.Linear(modelIncept.last_linear.in_features, num_classes)
-    
+
             modelResnet = pretrainedmodels.__dict__["se_resnext101_32x4d"](num_classes=1000, pretrained="imagenet")
             modelResnet.avg_pool = nn.AdaptiveAvgPool2d((1,1))
-            modelResnet.last_linear = nn.Linear(modelResnet.last_linear.in_features, num_classes)    
+            modelResnet.last_linear = nn.Linear(modelResnet.last_linear.in_features, num_classes)
 
             model = EnsembleAverage(modelIncept, modelResnet, num_classes, self.image_sizes)
 
         else: #if (self.model_type == Model.inceptionv4_resnet50):
-            modelIncept = pretrainedmodels.__dict__["inceptionv4"](num_classes=1000, pretrained=loadPretrained)        
+            modelIncept = pretrainedmodels.__dict__["inceptionv4"](num_classes=1000, pretrained=loadPretrained)
             modelResnet = models.resnet50(pretrained=True)
 
             ct = 0
@@ -309,7 +310,7 @@ class ClassificationModel(nn.Module):
                         param.requires_grad = False
                 ct += 1
 
-            modelIncept.last_linear = nn.Linear(modelIncept.last_linear.in_features, num_classes)    
+            modelIncept.last_linear = nn.Linear(modelIncept.last_linear.in_features, num_classes)
             modelResnet.fc  = nn.Linear(modelResnet.fc.in_features, num_classes)
 
             model = EnsembleAverage(modelIncept, modelResnet, num_classes)
