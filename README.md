@@ -18,7 +18,7 @@ The species model is not as robust as the wildlife object detection model. There
 
 NOTE: This model is very old. It uses an ancient version of Tensorflow, which depends on old CUDA drivers, which only work with old GPUs. This means I can't test GPU functionality on my Nvidia 3090, Nvidia 1080 Ti works but I don't have one anymore!
 
-I have tested with CPU and the model can still run, but slowly.
+I have tested with CPU and the model can still run, but slowly. Also, there's an annoying bug where because this uses an old bas eimage for CUDA+torch, importing torch requires NVIDIA drivers and docker to be run with the `--gpus all` flag, even to run the CPU version. This could be addressed with a different base image probably but at this point there are hopefully better species classification models out there in the wild or the literature.
 
 To run the species detection, you'll need to build the Species detection container:
 
@@ -29,9 +29,11 @@ docker build -t species_detector -f Dockerfile-species .
 To run detection on a folder of imagery:
 
 ```
-docker run -it --rm -v "$(pwd)"/data:/data -v "$(pwd)"/SpeciesClassification:/app species_detector sampleresultstest test.csv
-sudo chmod -R a+rwx data/results/sampleresultstest
-python filter_common_animals.py --csv_path data/results/test.csv --common_to_filter "sheep" --threshold .2
+docker run -it --rm --gpus all -v "$(pwd)"/data:/data -v "$(pwd)"/SpeciesClassification:/app species_detector --images_to_classify /data/SampleAnimalPics --classification_output_file /data/results.csv --taxonomy_path /app/species_classification.2019.12.00.taxa.csv --classification_model_path /app/species_classification.2019.12.00.pytorch
+
+
+sudo chmod -R a+rwx data/species_results/
+python filter_common_animals.py --csv_path data/species_results/ --common_to_filter "sheep" --threshold .2
 ```
 
 make sure to download the model files and other data for species classification referenced here and place them in the `SpeciesClassification` folder: https://github.com/microsoft/SpeciesClassification

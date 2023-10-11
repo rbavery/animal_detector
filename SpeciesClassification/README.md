@@ -1,3 +1,5 @@
+This is the original README for the [Microsoft SpeciesClassification](https://github.com/microsoft/SpeciesClassification) repo. Use the Dockerfile-species in the folder above to run this code.
+
 
 <img src="https://github.com/microsoft/SpeciesClassification/blob/master/species_classification_demo.png"><br/><br/>
 
