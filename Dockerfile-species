@@ -12,4 +12,4 @@ RUN cd /app/FasterRCNNDetection/model/utils/nms/ && python3 build.py build_ext -
 COPY SpeciesClassification/inceptionv4-8e4777a0.pth /root/.torch/models/inceptionv4-8e4777a0.pth
 COPY SpeciesClassification/se_resnext101_32x4d-3b2fe3d8.pth /root/.torch/models/se_resnext101_32x4d-3b2fe3d8.pth
 COPY SpeciesClassification/species_classification.2019.12.00.pytorch /root/.torch/models/species_classification.2019.12.00.pytorch
-ENTRYPOINT ["bash", "classify_images.sh"]
+ENTRYPOINT ["python", "classify_images.py"]
