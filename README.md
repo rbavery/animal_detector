@@ -20,7 +20,17 @@ NOTE: This model is very old. It uses an ancient version of Tensorflow, which de
 
 I have tested with CPU and the model can still run, but slowly. Also, there's an annoying bug where because this uses an old bas eimage for CUDA+torch, importing torch requires NVIDIA drivers and docker to be run with the `--gpus all` flag, even to run the CPU version. This could be addressed with a different base image probably but at this point there are hopefully better species classification models out there in the wild or the literature.
 
-To run the species detection, you'll need to build the Species detection container:
+Step 1 is to make sure to download the model files and other data for species classification referenced here and place them in the `SpeciesClassification` folder: https://github.com/microsoft/SpeciesClassification
+
+```
+se_resnext101_32x4d-3b2fe3d8.pth
+species_classification.2019.12.00.pytorch
+inceptionv4-8e4777a0.pth
+species_classification.2019.12.00.taxa.csv
+```
+The .pth files are downloaded automatically during the `classify_images.py` script every time it is run if they are not copied during the docker build.
+
+To run the species detection, you'll need to build the species detection container:
 
 ```
 docker build -t species_detector -f Dockerfile-species .
@@ -30,18 +40,11 @@ To run detection on a folder of imagery:
 
 ```
 docker run -it --rm --gpus all -v "$(pwd)"/data:/data -v "$(pwd)"/SpeciesClassification:/app species_detector --images_to_classify /data/SampleAnimalPics --classification_output_file /data/results.csv --taxonomy_path /app/species_classification.2019.12.00.taxa.csv --classification_model_path /app/species_classification.2019.12.00.pytorch
-
-
 sudo chmod -R a+rwx data/species_results/
-python filter_common_animals.py --csv_path data/species_results/ --common_to_filter "sheep" --threshold .2
 ```
 
-make sure to download the model files and other data for species classification referenced here and place them in the `SpeciesClassification` folder: https://github.com/microsoft/SpeciesClassification
+To remove all images that contain a common species category with "sheep" in the name, run this (careful! this deletes images):
 
 ```
-se_resnext101_32x4d-3b2fe3d8.pth
-species_classification.2019.12.00.pytorch
-inceptionv4-8e4777a0.pth
-species_classification.2019.12.00.taxa.csv
+python filter_common_animals.py --csv_path data/results.csv --common_to_filter "sheep" --threshold .2
 ```
-The .pth files are downloaded automatically during the `classify_images.py` script every time it is run if they are not copied during the docker build.
