@@ -1,19 +1,20 @@
-FROM pytorch/torchserve:latest-gpu
+FROM pytorch/torchserve:0.9.0-gpu
 RUN whoami
 RUN ls -la /home/venv/bin/pip
 USER root
 # RUN pip install --upgrade pip && pip install opencv-python ipython
 # commit id https://github.com/ultralytics/yolov5/blob/9286336cb49d577873b2113739788bbe3b90f83c/requirements.txt
 RUN pip install "numpy==1.23.4" "opencv-python==4.6.0.66" \
-    "Pillow==9.2.0" "torchvision" "onnxruntime==1.14.1" "onnx==1.13.1" "tensorrt" "torch-tensorrt" "nvgpu"
-COPY ./deployment/dockerd-entrypoint.sh /usr/local/bin/dockerd-entrypoint.sh
+    "Pillow==9.2.0" "torchvision" "onnxruntime==1.14.1" "onnx==1.13.1" "tensorrt" "nvgpu"
+RUN pip install https://github.com/pytorch/TensorRT/releases/download/v1.2.0/torch_tensorrt-1.2.0-cp39-cp39-linux_x86_64.whl
+
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh
 RUN mkdir -p /home/model-server/ && mkdir -p /home/model-server/tmp
-COPY ./deployment/config.properties /home/model-server/config.properties
 WORKDIR /home/model-server
 ENV TEMP=/home/model-server/tmp
 ENV YOLOv5_AUTOINSTALL=False
 ENV ENABLE_TORCH_PROFILER=TRUE
 ENV CUDA_MODULE_LOADING=LAZY
 ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh"]
+COPY ./config.properties /home/model-server/config.properties
 CMD ["serve"]
