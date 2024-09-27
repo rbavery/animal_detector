@@ -1,7 +1,7 @@
 import torchvision.transforms as tf
 import torch
 from PIL import Image
-ts_model = torch.jit.load("./model-weights/md_v5a.0.0.960.1280.torchscript")
+ts_model = torch.jit.load("./model-weights/md_v5a.0.0.torchscript")
 
 import torch_tensorrt
 im_placeholder = torch.empty((1, 3, 960, 1280), dtype=torch.float32, device=torch.device("cuda:0"))
